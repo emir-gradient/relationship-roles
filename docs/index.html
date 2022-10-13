@@ -33,6 +33,137 @@
 
 <h1 id="nodejs-relationship-roles">Node.js Relationship Roles</h1>
 <p>Node.js library for authorization based on relationship roles.</p>
+<h2 id="documentation">Documentation</h2>
+<p>Read more at <a href="https://emir-gradient.github.io/relationship-roles/">https://emir-gradient.github.io/relationship-roles/</a>.</p>
+<h2 id="install">Install</h2>
+<div><pre class="line-numbers"><code class="language-none">npm install relationship-roles</code></pre></div><h2 id="usage">Usage</h2>
+<ol>
+<li>Define type for required relationship roles (enum, string, interface, etc.)</li>
+<li>Create needed relationship resolvers by implementing <code>RelationshipResolver&lt;User, RelatedObject, RelationshipRole&gt;</code>
+interface:</li>
+</ol>
+<div><pre class="line-numbers"><code class="language-ts">/**
+ * User - Type of user
+ * RelatedObject - Type of related object (object user is related to)
+ * RelationshipRole - Type of relationship role
+ */
+export interface RelationshipResolver&lt;User, RelatedObject, RelationshipRole&gt; {
+  /**
+   * Return Relationship Roles that this resolver is responsible to recognize.
+   */
+  getSupportedRelationships(): Promise&lt;RelationshipRole[]&gt;;
+
+  /**
+   * Determine and provide relationship between user and related object.
+   */
+  getRelations(user: User, relatedObject: RelatedObject): Promise&lt;RelationshipRole[]&gt;;
+}</code></pre></div><ol start="3">
+<li>Instantiate and use authorization service:</li>
+</ol>
+<div><pre class="line-numbers"><code class="language-ts">const authorizationService = await getAuthorizationService([
+  ...resolvers // Resolvers created in step 2
+]);
+
+ // Authorize &#39;user&#39; related to &#39;relatedObject&#39; based on &#39;requiredRoles&#39;
+ const result = await authorizationService.authorize(user, relatedObject, [...requiredRoles]);
+
+ result; // true | false</code></pre></div><h2 id="example">Example</h2>
+<p>Suppose that business requirement is to handle authorization for online store.
+Authorization should be executed based on next relationships:</p>
+<ul>
+<li>Store Owner (the User owns the Store)</li>
+<li>Store Team Member (the User is member of the Store team)</li>
+<li>Product Seller (the User sold the Product)</li>
+<li>Product Buyer (the User bought the Product)</li>
+</ul>
+<p>Relevant entities that describe these scenarios are:</p>
+<div><pre class="line-numbers"><code class="language-ts">interface StoreEntity {
+  id: number;
+  name: string;
+  owner: UserEntity;
+  team: UserEntity[];
+  products: ProductEntity[];
+}
+
+interface ProductEntity {
+  id: string;
+  seller: UserEntity;
+  title: string;
+  price: number;
+  currency: string;
+  buyers: UserEntity[];
+}
+
+interface UserEntity {
+  id: number;
+  fullName: string;
+  email: string;
+}</code></pre></div><h3 id="implementation-steps">Implementation Steps</h3>
+<h4 id="1-define-relationship-roles-needed-for-your-project">1. Define relationship roles needed for your project:</h4>
+<div><pre class="line-numbers"><code class="language-ts">enum StoreRole {
+  &quot;PRODUCT_SELLER&quot; = &quot;PRODUCT_SELLER&quot;,
+  &quot;PRODUCT_BUYER&quot; = &quot;PRODUCT_BUYER&quot;,
+  &quot;STORE_OWNER&quot; = &quot;STORE_OWNER&quot;,
+  &quot;STORE_TEAM_MEMBER&quot; = &quot;STORE_TEAM_MEMBER&quot;
+}</code></pre></div><h4 id="2-implement-storerelationshipresolver">2. Implement StoreRelationshipResolver:</h4>
+<div><pre class="line-numbers"><code class="language-ts">class StoreRelationshipResolver implements RelationshipResolver&lt;UserEntity, StoreEntity, StoreRole&gt; {
+  async getRelations(user: UserEntity, store: StoreEntity): Promise&lt;StoreRole[]&gt; {
+    const relations: StoreRole[] = [];
+
+    if (store.owner.id === user.id) {
+      relations.push(StoreRole.STORE_OWNER);
+    }
+
+    if (store.team.find(t =&gt; t.id === user.id)) {
+      relations.push(StoreRole.STORE_TEAM_MEMBER);
+    }
+
+    return relations;
+  }
+
+  async getSupportedRelationships(): Promise&lt;StoreRole[]&gt; {
+    return [StoreRole.STORE_OWNER, StoreRole.STORE_TEAM_MEMBER];
+  }
+}</code></pre></div><h4 id="3-implement-productrelationshipresolver">3. Implement ProductRelationshipResolver:</h4>
+<div><pre class="line-numbers"><code class="language-ts">class ProductRelationshipResolver implements RelationshipResolver&lt;UserEntity, ProductEntity, StoreRole&gt; {
+
+  async getRelations(user: UserEntity, product: ProductEntity): Promise&lt;StoreRole[]&gt; {
+    const relations: StoreRole[] = [];
+
+    if (product.seller.id === user.id) {
+      relations.push(StoreRole.PRODUCT_SELLER);
+    } else if (product.buyers.find(pb =&gt; pb.id === user.id)) {
+      relations.push(StoreRole.PRODUCT_BUYER);
+    }
+
+    return relations;
+  }
+
+  async getSupportedRelationships(): Promise&lt;StoreRole[]&gt; {
+    return [StoreRole.PRODUCT_BUYER, StoreRole.PRODUCT_SELLER];
+  }
+}</code></pre></div><h4 id="4-authorize">4. Authorize:</h4>
+<div><pre class="line-numbers"><code class="language-ts"> const authorizationService = await getAuthorizationService([
+   new ProductRelationshipResolver(),
+   new StoreRelationshipResolver()
+ ]);
+
+ await authorizationService.authorize(user, store, [
+   StoreRole.STORE_OWNER,
+   StoreRole.STORE_TEAM_MEMBER
+ ]); // true | false
+
+ await authorizationService.authorize(user, product, [
+   StoreRole.PRODUCT_BUYER
+ ]); // true | false
+
+ await authorizationService.authorize(user, product, [
+   StoreRole.PRODUCT_SELLER
+ ]); // true | false</code></pre></div><h2 id="tests">Tests</h2>
+<div><pre class="line-numbers"><code class="language-none">npm run test</code></pre></div><h2 id="build">Build</h2>
+<div><pre class="line-numbers"><code class="language-none">npm run build</code></pre></div><h2 id="credits">Credits</h2>
+<p>Gradient Software Development <a href="https://gradient.ba">https://gradient.ba</a></p>
+<p><a href="mailto:&#105;&#110;&#102;&#111;&#64;&#103;&#114;&#97;&#100;&#x69;&#101;&#110;&#116;&#46;&#x62;&#x61;">&#105;&#110;&#102;&#111;&#64;&#103;&#114;&#97;&#100;&#x69;&#101;&#110;&#116;&#46;&#x62;&#x61;</a></p>
 
 
 
