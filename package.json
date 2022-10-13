@@ -11,7 +11,7 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.{ts,js}\"",
     "lint": "tslint -p tsconfig.json",
-    "doc": "./node_modules/@compodoc/compodoc/bin/index-cli.js -p tsconfig.json -n \"Node.js - Relationship Roles\" src -s --port 8081"
+    "doc": "./node_modules/@compodoc/compodoc/bin/index-cli.js -p tsconfig.json -n \"Node.js - Relationship Roles\" src -s -d ./docs --port 8081"
   },
   "repository": {
     "type": "git",
