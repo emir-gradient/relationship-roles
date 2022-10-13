@@ -3,14 +3,18 @@
   "version": "1.0.0",
   "description": "Node.js library for authorization based on relationship roles.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "prepare" : "npm run build",
-    "prepublishOnly" : "npm test && npm run lint",
     "test": "jest --config jestconfig.json",
     "test:cov": "jest --coverage --config jestconfig.json",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.{ts,js}\"",
     "lint": "tslint -p tsconfig.json",
+    "prepare" : "npm run build",
+    "prepublishOnly" : "npm test && npm run lint",
+    "preversion" : "npm run lint",
+    "version" : "npm run format && git add -A src",
+    "postversion" : "git push && git push --tags",
     "doc": "./node_modules/@compodoc/compodoc/bin/index-cli.js -p tsconfig.json -n \"Node.js - Relationship Roles\" src -s -d ./docs --port 8081"
   },
   "repository": {
