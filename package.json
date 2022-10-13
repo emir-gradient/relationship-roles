@@ -1,0 +1,48 @@
+{
+  "name": "relationship-roles",
+  "version": "1.0.0",
+  "description": "Node.js library for authorization based on relationship roles.",
+  "main": "lib/index.js",
+  "scripts": {
+    "prepare" : "npm run build",
+    "prepublishOnly" : "npm test && npm run lint",
+    "test": "jest --config jestconfig.json",
+    "test:cov": "jest --coverage --config jestconfig.json",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.{ts,js}\"",
+    "lint": "tslint -p tsconfig.json",
+    "doc": "./node_modules/@compodoc/compodoc/bin/index-cli.js -p tsconfig.json -n \"Node.js - Relationship Roles\" src -s --port 8081"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emir-gradient/relationship-roles.git"
+  },
+  "keywords": [
+    "node.js",
+    "node",
+    "authorization",
+    "relation roles",
+    "dynamic roles",
+    "contextual roles",
+    "roles"
+  ],
+  "author": "Gradient Software Development <info@gradient.ba>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emir-gradient/relationship-roles/issues"
+  },
+  "homepage": "https://github.com/emir-gradient/relationship-roles#readme",
+  "devDependencies": {
+    "@compodoc/compodoc": "^1.1.19",
+    "@types/jest": "^29.1.2",
+    "jest": "^29.1.2",
+    "prettier": "^2.7.1",
+    "ts-jest": "^29.0.3",
+    "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^4.8.4"
+  },
+  "files": [
+    "lib/**/*"
+  ]
+}
